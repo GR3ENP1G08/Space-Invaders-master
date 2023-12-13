@@ -1,7 +1,7 @@
 import turtle
 import math
 import cv2
-from ObjectDetector import *
+from Tracker import *
 
 #Ecrã
 window = turtle.Screen()
@@ -39,9 +39,6 @@ enemy_y_decrement_offset = 35
 enemy_x_offset = 40
 enemies = []
 
-#Camera
-camera = ObjectDetection()
-
 for i in range(number_of_enemies):
     enemies.append(turtle.Turtle())
 
@@ -67,16 +64,50 @@ bullet.hideturtle()
 bullet.speed(0)
 bullet_speed = 30
 
+# Incializar a Camara
+cap = cv2.VideoCapture()
+image = None
+
+# Inicialização do tracker
+tracker = None
+direction, isPlayerFiring = 0, 0
+
+# Rectangulo do Rato
+refPt = []
+cropping = False
+
+def click_and_crop(event, x, y, flags, param):
+    # Referências globais para as variáveis usadas no evento do mouse
+    global refPt, cropping
+
+    # Se o botão esquerdo do mouse foi pressionado, registra o ponto inicial
+    if event == cv2.EVENT_LBUTTONDOWN:
+        refPt = [(x, y)]
+        cropping = True
+
+    # Se o botão esquerdo do mouse foi solto, registra o ponto final
+    elif event == cv2.EVENT_LBUTTONUP:
+        refPt.append((x, y))
+        cropping = False
+
+        # Desenha o retângulo na janela
+        cv2.rectangle(image, refPt[0], refPt[1], (0, 255, 0), 2)
+        cv2.imshow("Camera", image)
+
+cv2.namedWindow("Camera")
+cv2.setMouseCallback("Camera", click_and_crop)
+
+
 #Movimentação do player
 def move_left():
-    player_x_position = player.xcor();
+    player_x_position = player.xcor()
     player_x_position -= player_speed
     if player_x_position < -280:
         player_x_position = -280
     player.setx(player_x_position)
 
 def move_right():
-    player_x_position = player.xcor();
+    player_x_position = player.xcor()
     player_x_position += player_speed
     if player_x_position > 280:
         player_x_position = 280
@@ -102,16 +133,25 @@ def isCollission(turtle1, turtle2):
 #Main game loop
 game_over = False
 while not game_over:
-
-    cap = cv2.VideoCapture()
     if not cap.isOpened():
         cap.open(0)
-    _, image = cap.read()
-    image = image[:, ::-1, :]
+    _, image_camera = cap.read()
+    image_camera = image_camera[:, ::-1, :]
 
-    (camera_image, direction, isPlayerFiring) = camera.process(image, 67)
+    image = image_camera.copy()
 
-    cv2.imshow("Camera", camera_image)
+    # Se o retângulo foi selecionado, exibe a imagem com o retângulo
+    if len(refPt) == 2 and tracker is None:
+        cv2.rectangle(image, refPt[0], refPt[1], (0, 255, 0), 2)
+        # Iniciar o Tracker
+        tracker = Tracker(image, (refPt[0][0], refPt[0][1],
+                                        refPt[1][0] - refPt[0][0],
+                                        refPt[1][1] - refPt[0][1]))
+
+    if tracker is not None:
+        direction, isPlayerFiring = tracker.track(image)
+
+    cv2.imshow("Camera", image)
 
     #Movimentação inimigos
     for enemy in enemies:
@@ -181,3 +221,5 @@ while not game_over:
     # turtle.onkeypress(fire_bullet, "space")
 
 turtle.done()
+cv2.destroyAllWindows()
+cap.release()

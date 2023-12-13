@@ -32,11 +32,14 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.SpaceInvaders.executor": "Debug",
+    "Python.Tracker.executor": "Debug",
+    "Python._pydev_execfile.executor": "Debug",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/Utilizador/PycharmProjects/Space-Invaders-master",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
+    "last_opened_file_path": "C:/Users/franc/Desktop/Space-Invaders-master",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="SharedIndexes">
